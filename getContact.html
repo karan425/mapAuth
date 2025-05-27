@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Picker to Firebase</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <button onclick="getContacts()">Pick Contacts</button>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Contact Picker API usage
+    async function getContacts() {
+      if (!('contacts' in navigator && 'ContactsManager' in window)) {
+        alert("Contact Picker API not supported on this device.");
+        return;
+      }
+
+      try {
+        const props = ['name', 'email', 'tel'];
+        const opts = { multiple: true };
+
+        const contacts = await navigator.contacts.select(props, opts);
+        contacts.forEach((contact, index) => {
+          db.ref('contacts').push({
+            name: contact.name ? contact.name[0] : "",
+            email: contact.email ? contact.email[0] : "",
+            phone: contact.tel ? contact.tel[0] : "",
+            timestamp: new Date().toISOString()
+          });
+        });
+
+        alert("Contacts uploaded to Firebase!");
+      } catch (error) {
+        console.error("Error picking contacts:", error);
+        alert("Permission denied or error picking contacts.");
+      }
+    }
+  </script>
+</body>
+</html>
